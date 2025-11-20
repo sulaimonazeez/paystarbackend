@@ -16,7 +16,11 @@ connectDb();
 
 const app = express();
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173'
+}));
+
+
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -26,10 +30,11 @@ app.use(myRoute);
 app.use(adminRoute);
 
 app.listen(5000, () => {
-  console.log("✅ Server running on port 5000...");
+  console.log("✅ Server running on port 8000...");
 });
 
-// Run immediately
+
+
 (async () => {
   try {
     console.log("⏰ Running initial fetch...");
@@ -40,7 +45,6 @@ app.listen(5000, () => {
   }
 })();
 
-// Schedule future cron
 cron.schedule("0 0 */2 * *", async () => {
   console.log("⏰ Starting 2-day sync...");
   try {
