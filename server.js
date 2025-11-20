@@ -15,7 +15,11 @@ import helmet from "helmet";
 connectDb();
 
 const app = express();
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: false, // disable CSP for dev
+  })
+);
 app.use(cors({ origin: '*' }));
 
 
