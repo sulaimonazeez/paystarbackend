@@ -1,0 +1,20 @@
+import mongoose from "mongoose";
+import { registerModel } from "../admin/adminRegistry.js";
+const userSchema = new mongoose.Schema(
+  {
+    firstName: { type: String, required: true, trim: true },
+    lastName: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    phoneNumber: { type: String, required: true, unique: true, trim: true },
+    password: { type: String, required: true },
+    role: { type: String, enum: ["user", "admin", "staff"], default: "user" }
+  },
+  {
+    timestamps: true,
+  }
+);
+
+
+const User = mongoose.model("User", userSchema);
+registerModel("User", User);
+export default User;
