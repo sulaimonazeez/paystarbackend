@@ -20,12 +20,6 @@ export const payvesselWebhook =  async (req, res) => {
     const clientIp = req.connection.remoteAddress || req.ip;
     
     const generatedHash = crypto.createHmac("sha512", SECRET).update(JSON.stringify(payload)).digest("hex");
-    
-    if (generatedHash !== payvessel_signature) {
-      console.log("Invalid signature");
-      return res.status(400).json({ message: "Invalid signature" });
-      
-    }
 
     if (!ALLOWED_IPS.includes(clientIp)){
       console.error("Host not allow");
