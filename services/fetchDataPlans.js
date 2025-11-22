@@ -1,12 +1,11 @@
 // services/fetchAndStoreDataPlans.js
 import axios from "axios";
-import providers from "../config/providers.js"; // ✅ make sure this import is here
+import providers from "../config/providers.js";
 import DataPlan from "../models/DataPlan.js";
 import CablePlan from "../models/CablePlan.js";
 
-
 export const fetchAndStoreInlomax = async () => {
-  const provider = providers.inlomax; // ✅ Now defined
+  const provider = providers.inlomax;
 
   try {
     const response = await axios.get(
@@ -14,16 +13,18 @@ export const fetchAndStoreInlomax = async () => {
       { headers: provider.headers }
     );
 
-    // Use the transformResponse defined in config
     const plans = provider.transformResponse(response.data);
     const cable = provider.transformCableResponse(response.data);
+
     if (!plans.length || !cable.length) throw new Error("No valid plans found");
 
-    // Optional: Clear old plans before saving
+    // Delete old plans
     await DataPlan.deleteMany({});
-    await DataPlan.insertMany(plans);
     await CablePlan.deleteMany({});
-    await CablePlan.insertMany(cable);
+
+    // Save new plans using create()
+    await DataPlan.create(plans);
+    await CablePlan.create(cable);
 
     console.log(`✅ Stored ${plans.length} DataPlans.... Cable ${cable.length}`);
   } catch (err) {
