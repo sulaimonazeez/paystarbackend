@@ -22,11 +22,13 @@ export const payvesselWebhook =  async (req, res) => {
     const generatedHash = crypto.createHmac("sha512", SECRET).update(JSON.stringify(payload)).digest("hex");
     
     if (generatedHash !== payvessel_signature) {
+      console.log("Invalid signature");
       return res.status(400).json({ message: "Invalid signature" });
       
     }
 
     if (!ALLOWED_IPS.includes(clientIp)){
+      console.error("Host not allow");
       return res.status(400).json({ message: "Unauthorized IP" });
     }
 
@@ -49,6 +51,7 @@ export const payvesselWebhook =  async (req, res) => {
     const user = await User.findOne({ email });
     
     if (!user) {
+      console.error("User not found");
       return res.status(400).json({ message: "User not found" });
     }
     
