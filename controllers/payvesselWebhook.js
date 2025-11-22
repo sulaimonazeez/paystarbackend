@@ -21,11 +21,6 @@ export const payvesselWebhook =  async (req, res) => {
     
     const generatedHash = crypto.createHmac("sha512", SECRET).update(JSON.stringify(payload)).digest("hex");
 
-    if (!ALLOWED_IPS.includes(clientIp)){
-      console.error("Host not allow");
-      return res.status(400).json({ message: "Unauthorized IP" });
-    }
-
     const data = payload;
     if (!data?.order?.amount ||
       !data?.order?.settlement_amount ||
