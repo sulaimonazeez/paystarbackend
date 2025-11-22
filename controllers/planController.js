@@ -3,7 +3,7 @@ import DataPlan from "../models/DataPlan.js";
 export const getAllDataPlans = async (req, res) => {
   try {
     const plans = await DataPlan.find();
-
+    console.log(plans);
     // ⚡ Force fresh response
     res.setHeader("Cache-Control", "no-store");
     res.setHeader("Pragma", "no-cache");

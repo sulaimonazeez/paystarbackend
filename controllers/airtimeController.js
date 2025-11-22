@@ -1,6 +1,7 @@
 import Balance from "../models/Balance.js";
+import { purchaseAirtime } from "../services/processAirtime.js";
+import PurchaseSchema from "../models/PurchaseSchema.js";
 import { validationResult } from "express-validator";
-import { Worker } from "worker_threads";
 
 export const AirtimePurchase = async (req, res) => {
   try {
@@ -27,17 +28,38 @@ export const AirtimePurchase = async (req, res) => {
     balance.balance -= Number(amount);
     await balance.save();
 
-    // Run API purchase in background
-    new Promise((resolve, reject) => {
-      const worker = new Worker("./workers/airtimeWorker.js", {
-        workerData: { serviceId, phoneNumber, amount, userId: req.user.id },
-      });
+    // Generate reference
+    const reference = `${serviceId}-${Date.now()}`;
 
-      worker.on("message", resolve);
-      worker.on("error", reject);
+    // Send 202 ACCEPTED immediately
+    res.status(202).json({ status: "PROCESSING", reference });
+
+    // Run airtime purchase in background
+    setImmediate(async () => {
+  try {
+    const result = await purchaseAirtime(serviceId, phoneNumber, amount);
+    console.log(result);
+    // Normalize status to match enum
+    let status = result?.data?.status?.toLowerCase() || "failed";
+    if (!["success", "failed", "pending"].includes(status)) {
+      status = "failed"; // fallback for unknown values
+    }
+
+    await PurchaseSchema.create({
+      user: req.user.id,
+      serviceType: "airtime",
+      status,
+      message: result?.data?.message || "No response message",
+      reference: result?.data?.data?.reference || reference,
+      responseData: result?.data || {},
     });
 
-    return res.status(200).json({ message: "Purchase is being processed in the background" });
+    console.log(`Airtime purchase completed for ${phoneNumber}`);
+  } catch (err) {
+    console.error("Background airtime purchase error:", err);
+  }
+});
+
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server Error", error: err.message });

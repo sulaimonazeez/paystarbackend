@@ -1,9 +1,11 @@
+import Balance from "../models/Balance.js";
+import { purchaseData } from "../services/processData.js";
+import PurchaseSchema from "../models/PurchaseSchema.js";
 import { validationResult } from "express-validator";
 import DataPlan from "../models/DataPlan.js";
-import Balance from "../models/Balance.js";
-import { Worker } from "worker_threads";
 
 export const BuyBundle = async (req, res) => {
+  // 1️⃣ Validate request
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
@@ -11,9 +13,12 @@ export const BuyBundle = async (req, res) => {
 
   try {
     const { serviceId, phoneNumber } = req.body;
+
+    // 2️⃣ Find plan
     const plan = await DataPlan.findOne({ serviceID: serviceId });
     if (!plan) return res.status(404).json({ message: "No plan found" });
 
+    // 3️⃣ Find user balance
     const balance = await Balance.findOne({ user: req.user.id });
     if (!balance) return res.status(404).json({ message: "Balance not found" });
 
@@ -21,37 +26,56 @@ export const BuyBundle = async (req, res) => {
       return res.status(402).json({ message: "Insufficient Fund" });
     }
 
-    // Deduct balance immediately
+    // 4️⃣ Deduct balance immediately
     balance.balance -= Number(plan.amount);
     await balance.save();
 
-    // Generate reference
-    const reference = serviceId + "-" + Date.now();
+    // 5️⃣ Generate reference
+    const reference = `${serviceId}-${Date.now()}`;
 
-    // Respond immediately to user
+    // 6️⃣ Send 202 ACCEPTED immediately
     res.status(202).json({ status: "PROCESSING", reference });
 
-    // Run the background worker
-    const worker = new Worker("./workers/buyBundleWorker.js", {
-      workerData: {
-        serviceId,
-        phoneNumber,
-        userId: req.user.id,
-        planAmount: plan.amount,
-      },
-    });
+    // 7️⃣ Run the actual purchase in the background
+    setImmediate(async () => {
+      try {
+        const result = await purchaseData(serviceId, phoneNumber);
+        console.log(result.data);
+        // 8️⃣ Map external API status to your enum
+        const rawStatus = result?.data?.status?.toLowerCase() || "failed";
+        let status;
+        switch (rawStatus) {
+          case "success":
+            status = "success";
+            break;
+          case "pending":
+            status = "pending";
+            break;
+          default:
+            status = "failed"; // everything else → FAILED
+        }
 
-    worker.on("message", (result) => {
-      if (!result.success) console.error("Background worker error:", result.error);
-      else console.log("Purchase processed in background:", result.purchaseRecord.reference);
-    });
+        const message = result?.data?.message || "No response from API";
+        const referenceUsed = result?.data?.data?.reference || reference;
 
-    worker.on("error", (err) => console.error("Worker thread error:", err));
-    worker.on("exit", (code) => {
-      if (code !== 0) console.error("Worker stopped with exit code", code);
-    });
+        // 9️⃣ Save purchase record safely
+        await PurchaseSchema.create({
+          user: req.user.id,
+          serviceType: "data",
+          amount: plan.amount,
+          status,
+          message,
+          reference: referenceUsed,
+          responseData: result?.data || {},
+        });
 
+        console.log(`✅ Purchase completed for ${phoneNumber}, status: ${status}`);
+      } catch (err) {
+        console.error("❌ Background purchase error:", err.message || err);
+      }
+    });
   } catch (err) {
+    console.error("❌ BuyBundle controller error:", err.message || err);
     return res.status(500).json({ message: "Server Error", error: err.message });
   }
 };

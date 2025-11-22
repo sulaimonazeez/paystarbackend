@@ -34,25 +34,3 @@ app.use(adminRoute);
 app.listen(5000, () => {
   console.log("✅ Server running on port 8000...");
 });
-
-
-
-(async () => {
-  try {
-    console.log("⏰ Running initial fetch...");
-    await fetchAndStoreInlomax("inlomax");
-    console.log("✅ Initial fetch completed!");
-  } catch (err) {
-    console.error("❌ Initial fetch failed:", err.message);
-  }
-})();
-
-cron.schedule("0 0 */2 * *", async () => {
-  console.log("⏰ Starting 2-day sync...");
-  try {
-    await fetchAndStoreInlomax("inlomax");
-    console.log("✅ Background sync completed!");
-  } catch (err) {
-    console.error("❌ Background sync failed:", err.message);
-  }
-});
