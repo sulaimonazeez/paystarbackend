@@ -59,7 +59,7 @@ authRoute.post("/airtime/purchase",[body("network").isString(),body("phoneNumber
 
 // Webhook
 authRoute.post(
-  "/payvessel/webhook",
+  "/payvessel/webhoo",
   express.json({ verify: (req, res, buf) => (req.rawBody = buf) }),
   payvesselWebhook
 );
