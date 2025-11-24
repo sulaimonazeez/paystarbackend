@@ -13,8 +13,7 @@ export const BuyBundle = async (req, res) => {
 
   try {
     const { serviceId, phoneNumber } = req.body;
-
-    // 2️⃣ Find plan
+    
     const plan = await DataPlan.findOne({ serviceID: serviceId });
     if (!plan) return res.status(404).json({ message: "No plan found" });
 
@@ -26,22 +25,14 @@ export const BuyBundle = async (req, res) => {
       return res.status(402).json({ message: "Insufficient Fund" });
     }
 
-    // 4️⃣ Deduct balance immediately
     balance.balance -= Number(plan.amount);
     await balance.save();
 
     // 5️⃣ Generate reference
     const reference = `${serviceId}-${Date.now()}`;
-
-    // 6️⃣ Send 202 ACCEPTED immediately
-    res.status(202).json({ status: "PROCESSING", reference });
-
-    // 7️⃣ Run the actual purchase in the background
-    setImmediate(async () => {
-      try {
+    try {
         const result = await purchaseData(serviceId, phoneNumber);
         console.log(result.data);
-        // 8️⃣ Map external API status to your enum
         const rawStatus = result?.data?.status?.toLowerCase() || "failed";
         let status;
         switch (rawStatus) {
@@ -73,7 +64,8 @@ export const BuyBundle = async (req, res) => {
       } catch (err) {
         console.error("❌ Background purchase error:", err.message || err);
       }
-    });
+    res.status(200).json({ status: "PROCESSING", reference });
+
   } catch (err) {
     console.error("❌ BuyBundle controller error:", err.message || err);
     return res.status(500).json({ message: "Server Error", error: err.message });
