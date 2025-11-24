@@ -34,6 +34,20 @@ export const BuyBundle = async (req, res) => {
         const result = await purchaseData(serviceId, phoneNumber);
         console.log(result.data);
         const rawStatus = result?.data?.status?.toLowerCase() || "failed";
+        if (rawStatus === "failed" || rawStatus === "error") {
+          balance.balance += Number(plan.amount);
+          balance.save();
+          await PurchaseSchema.create({
+          user: req.user.id,
+          serviceType: "data",
+          amount: plan.amount,
+          status,
+          message,
+          reference: referenceUsed,
+          responseData: result?.data || {},
+        });
+          return res.status(401).json({message:"Unable to process payment"})
+        }
         let status;
         switch (rawStatus) {
           case "success":
@@ -71,3 +85,4 @@ export const BuyBundle = async (req, res) => {
     return res.status(500).json({ message: "Server Error", error: err.message });
   }
 };
+            
