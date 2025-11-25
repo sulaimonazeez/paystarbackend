@@ -11,7 +11,8 @@ export const PinUpdate = async (req, res) =>{
     }
     const user = await pinSchemas.findOne({user:req.user.id});
     if (!user) {
-      return res.status(404).json({message:"User not found"});
+      await pinSchemas.create({user:req.user.id, pin:newPin})
+      return res.status(200).json({message:"Pin Created"});
     }
     if (user.pin !== oldPin) {
       return res.status(401).json({message:"Invalid Pin"})
