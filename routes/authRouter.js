@@ -4,6 +4,7 @@ import { body } from "express-validator";
 
 import { myProfile } from "../controllers/profileController.js";
 import { fetchBalance } from "../controllers/fetchBalanceController.js";
+import { PinUpdate } from "../controllers/pinUpdateController.js";
 import { CablePayment } from "../controllers/cablePaymentControllers.js";
 import { getUserAccount } from "../controllers/getUserAccountController.js";
 import { BuyBundle } from "../controllers/buyBundleController.js";
@@ -39,6 +40,7 @@ authRoute.get("/fetch/details", verifyToken, getUserAccount);
 // PIN Verification
 authRoute.get("/verify/pin", verifyToken, verifyController);
 
+authRoute.post("/update-pin", verifyToken, PinUpdate);
 // Cable
 authRoute.post("/verify/cable", [body("provider").isString(), body("cardNumber")
     .exists().withMessage("Smartcard number is required")
@@ -59,7 +61,7 @@ authRoute.post("/airtime/purchase",[body("network").isString(),body("phoneNumber
 
 // Webhook
 authRoute.post(
-  "/payvessel/webhoo",
+  "/payvessel/webhook",
   express.json({ verify: (req, res, buf) => (req.rawBody = buf) }),
   payvesselWebhook
 );
