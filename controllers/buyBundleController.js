@@ -73,13 +73,10 @@ export const BuyBundle = async (req, res) => {
           reference: referenceUsed,
           responseData: result?.data || {},
         });
-
-        console.log(`✅ Purchase completed for ${phoneNumber}, status: ${status}`);
+       res.status(200).json({message:"Transaction Successful"});
       } catch (err) {
-        console.error("❌ Background purchase error:", err.message || err);
+        return res.status(500).json({message:"Unable to process right now"})
       }
-    res.status(200).json({ status: "PROCESSING", reference });
-
   } catch (err) {
     console.error("❌ BuyBundle controller error:", err.message || err);
     return res.status(500).json({ message: "Server Error", error: err.message });
