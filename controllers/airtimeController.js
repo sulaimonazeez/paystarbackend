@@ -33,7 +33,7 @@ export const AirtimePurchase = async (req, res) => {
     console.log(result);
     let status = result?.data?.status?.toLowerCase() || "failed";
     if (status === "failed" || status === "error") {
-        balance.balance += amount;
+        balance.balance += Number(amount);
         await balance.save();
         await PurchaseSchema.create({
       user: req.user.id,
