@@ -62,7 +62,7 @@ export const AirtimePurchase = async (req, res) => {
     });
 
     console.log(`✅ Airtime purchase completed for ${phoneNumber}`);
-    return res.status(202).json({ status: "PROCESSING", reference });
+    return res.status(200).json({ message: "Airtime purchase successfully"});
 
   } catch (err) {
     console.error("❌ AirtimePurchase controller error:", err.message || err);
