@@ -84,7 +84,7 @@ export const BuyBundle = async (req, res) => {
       responseData: result?.data || {},
     });
 
-    res.status(200).json({ status: "PROCESSING", reference });
+    res.status(200).json({ message : "Transaction Successful" });
 
   } catch (err) {
     console.error("❌ BuyBundle controller error:", err.message || err);
