@@ -1,9 +1,13 @@
 import express from "express";
 import { verifyToken } from "../middleware/authMiddleware.js";
+import { logout } from "../controllers/logoutController.js";
+import { checkAuth } from "../controllers/authController.js";
 import { body } from "express-validator";
-
+import { PinSetUp } from "../controllers/pinSetController.js";
+import { PinStatus } from "../controllers/pinStatus.js";
 import { myProfile } from "../controllers/profileController.js";
 import { fetchBalance } from "../controllers/fetchBalanceController.js";
+import { PinUpdate } from "../controllers/pinUpdateController.js";
 import { CablePayment } from "../controllers/cablePaymentControllers.js";
 import { getUserAccount } from "../controllers/getUserAccountController.js";
 import { BuyBundle } from "../controllers/buyBundleController.js";
@@ -38,7 +42,10 @@ authRoute.get("/fetch/details", verifyToken, getUserAccount);
 
 // PIN Verification
 authRoute.get("/verify/pin", verifyToken, verifyController);
+authRoute.post("/pin/set-up", verifyToken, PinSetUp);
+authRoute.get("/pin/status", verifyToken, PinStatus);
 
+authRoute.post("/update-pin", verifyToken, PinUpdate);
 // Cable
 authRoute.post("/verify/cable", [body("provider").isString(), body("cardNumber")
     .exists().withMessage("Smartcard number is required")
@@ -47,6 +54,7 @@ authRoute.post("/verify/cable", [body("provider").isString(), body("cardNumber")
 authRoute.get("/cable/plans", verifyToken, getCable);
 authRoute.post("/cable/subscribe", verifyToken, CablePayment);
 
+authRoute.get("/check", checkAuth);
 // Airtime
 authRoute.post("/airtime/purchase",[body("network").isString(),body("phoneNumber")
   .isString()
@@ -56,6 +64,8 @@ authRoute.post("/airtime/purchase",[body("network").isString(),body("phoneNumber
     .isNumeric().withMessage("Amount must be a number")
     .custom((value) => value > 0).withMessage("Amount must be greater than 0")
     .custom((value) => value <= 10000).withMessage("Amount cannot exceed 10,000")], verifyToken, AirtimePurchase);
+    
+authRoute.post("/logout", logout);
 
 // Webhook
 authRoute.post(

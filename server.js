@@ -12,6 +12,8 @@ import cron from "node-cron";
 import { fetchAndStoreInlomax } from "./services/fetchDataPlans.js";
 import User from "./models/UserDb.js";
 import helmet from "helmet";
+import cookieParser from "cookie-parser";
+
 connectDb();
 
 const app = express();
@@ -20,9 +22,14 @@ app.use(
     contentSecurityPolicy: false, // disable CSP for dev
   })
 );
-app.use(cors({ origin: '*' }));
+app.use(
+  cors({
+    origin: "https://paystarng.vercel.app",
+    credentials: true,
+  })
+);
 
-
+app.use(cookieParser());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -33,5 +40,4 @@ app.use(adminRoute);
 
 app.listen(5000, () => {
   console.log("✅ Server running on port 8000...");
-
 });
