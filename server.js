@@ -21,13 +21,13 @@ app.use(
   helmet({
     contentSecurityPolicy: false, // disable CSP for dev
   })
-);
-app.use(
+);app.use(
   cors({
-    origin: "https://paystarng.vercel.app",
+    origin: true, // allows all origins dynamically
     credentials: true,
   })
 );
+
 
 app.use(cookieParser());
 app.use(morgan("dev"));

@@ -41,7 +41,7 @@ export const userLogin = async (req, res) => {
     // 🔥 SET COOKIE
     res.cookie("access_token", token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "lax",
       maxAge: 60 * 60 * 1000, // 1 hour
     });
