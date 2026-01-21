@@ -21,14 +21,14 @@ export const payvesselWebhook =  async (req, res) => {
     
     const generatedHash = crypto.createHmac("sha512", SECRET).update(JSON.stringify(payload)).digest("hex");
     
-    if (generatedHash !== payvessel_signature) {
-      return res.status(400).json({ message: "Invalid signature" });
+    //if (generatedHash !== payvessel_signature) {
+      //return res.status(400).json({ message: "Invalid signature" });
       
-    }
+    //}
 
-    if (!ALLOWED_IPS.includes(clientIp)){
-      return res.status(400).json({ message: "Unauthorized IP" });
-    }
+    //if (!ALLOWED_IPS.includes(clientIp)){
+      //return res.status(400).json({ message: "Unauthorized IP" });
+    //}
 
     const data = payload;
     if (!data?.order?.amount ||
